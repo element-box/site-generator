@@ -1,3 +1,3 @@
 # site-generator
 
-A simple markdown to HTML website converter in Python to practice new learnings.
+A simple MarkDown to HTML website converter in Python to practice new learnings.
