@@ -1,5 +1,7 @@
 import unittest
 
+from blocktypes import BlockType, block_to_block_type
+from utils import markdown_to_blocks, markdown_to_html_node
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
@@ -110,6 +112,157 @@ class TestHTMLNode(unittest.TestCase):
             ],
         )
         self.assertEqual(node.to_html(), '<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>')
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_markdown_to_blocks_headers(self):
+        md = """
+# This is a header
+
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+## This is a smaller header
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "# This is a header",
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "## This is a smaller header",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_block_to_block_types_headers(self):
+        header_single = "# This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_single))
+
+        header_double = "## This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_double))
+
+        header_triple = "### This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_triple))
+
+        header_quad = "#### This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_quad))
+
+        header_quint = "##### This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_quint))
+
+        header_sext = "###### This is a header"
+        self.assertEqual(BlockType.HEADING, block_to_block_type(header_sext))
+
+        header_sept = "####### This is NOT header"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(header_sept))
+
+    def test_block_to_block_types_code(self):
+        code_block = "```this is a code block in markdown```"
+        self.assertEqual(BlockType.CODE, block_to_block_type(code_block))
+
+        not_code_block = "``` this is not a valid block"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_code_block))
+
+        also_not_code_block = "this is not a valid block```"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(also_not_code_block)) 
+
+
+    def test_block_to_block_types_quote(self):
+        quote_block = "> this is a simple quote block"
+        self.assertEqual(BlockType.QUOTE, block_to_block_type(quote_block))
+
+        quote_block_also = ">this is also a quote block"
+        self.assertEqual(BlockType.QUOTE, block_to_block_type(quote_block_also))
+
+        not_quote = " > this is not a quote because of the space"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_quote))
+    
+        not_quote_also = " this is not a > quote because the indicator is not at the beginning of the line"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_quote_also))
+
+
+    def test_block_to_block_types_unordered(self):
+        single_item = "- This is a list"
+        self.assertEqual(BlockType.UNORDERED_LIST, block_to_block_type(single_item))
+
+        double_items = "- This is a list\n- with items"
+        self.assertEqual(BlockType.UNORDERED_LIST, block_to_block_type(double_items))
+
+        multiple_items = "- This is a list\n- with items\n- and multiples\n- for edge cases\n- and thoroughness"
+        self.assertEqual(BlockType.UNORDERED_LIST, block_to_block_type(multiple_items))
+
+        not_unordered_list = " - This is a list - with items"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_unordered_list))
+
+    def test_block_to_block_types_ordered(self):
+        single_item = "1. This is a list"
+        self.assertEqual(BlockType.ORDERED_LIST, block_to_block_type(single_item))
+
+        double_items = "1. This is a list\n2. with items"
+        self.assertEqual(BlockType.ORDERED_LIST, block_to_block_type(double_items))
+
+        multiple_items = "1. This is a list\n2. with items\n3. and multiples\n4. for edge cases\n5. and thoroughness"
+        self.assertEqual(BlockType.ORDERED_LIST, block_to_block_type(multiple_items))
+
+        not_ordered_list = "1. This is a list\n3. with items\n2. out of order"
+        self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_ordered_list))
+
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_codeblock(self):
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+        )
 
 if __name__ == "__main__":
     unittest.main()
