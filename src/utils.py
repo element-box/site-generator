@@ -104,22 +104,48 @@ def markdown_to_blocks(markdown: str) -> List[str]:
 def markdown_to_html_node(markdown: str) -> ParentNode:
     '''Converts full Markdown Document to a Single HTMLNode parent'''
     blocks = markdown_to_blocks(markdown)
+    children = []
     for block in blocks:
         block_type = block_to_block_type(block)
         match(block_type):
             case (BlockType.HEADING):
-                paragraph_node = HTMLNode()
-
-            case (BlockType.PARAGRAPH):
+                convert_header_block_to_html(block)
             case (BlockType.CODE):
+                convert_code_block_to_html(block)
             case (BlockType.QUOTE):
+                convert_quote_block_to_html(block)
+            case (BlockType.PARAGRAPH):
+                convert_paragraph_block_to_html(block)
             case (BlockType.UNORDERED_LIST):
+                convert_unord_block_to_html(block)
             case (BlockType.ORDERED_LIST):
-
-
-
+                convert_ord_block_to_html(block)
 
             case _:
                 raise Exception(f"invalid block: {block_type}")
 
-    return block
+    return ParentNode("<div>", children) 
+
+def convert_header_block_to_html(block):
+    # <h1-6>
+    pass
+
+def convert_code_block_to_html(block):
+    # <code> nested in <pre>
+    pass
+
+def convert_quote_block_to_html(block):
+    # <blockquote>
+    pass
+
+def convert_paragraph_block_to_html(block):
+    # <p>
+    pass
+
+def convert_unord_block_to_html(block):
+    # <ul> with each item surrounded by <li>
+    pass
+
+def convert_ord_block_to_html(block):
+    # <ol> with each item surrounded by <li>
+    pass
