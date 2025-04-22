@@ -11,22 +11,16 @@ class BlockType(Enum):
     ORDERED_LIST = "ordered_list"
 
 def block_to_block_type(block: str) -> BlockType:
-
     if is_heading_block(block):
         return BlockType.HEADING
-        
     if is_code_block(block):
         return BlockType.CODE
-            
     if is_quote_block(block):
         return BlockType.QUOTE
-
     if is_unordered_list(block):
         return BlockType.UNORDERED_LIST
-
     if is_ordered_list(block):
         return BlockType.ORDERED_LIST
-
     return BlockType.PARAGRAPH
 
 def is_heading_block(block: str) -> bool:
@@ -37,9 +31,12 @@ def is_heading_block(block: str) -> bool:
     return False
 
 def is_code_block(block: str) -> bool:
-    code_regex = r"^```.*```$"
-    code = re.findall(code_regex, block)
+    code_online_regex = r"^```.*```$"
+    code = re.findall(code_online_regex, block)
     if len(code) > 0:
+        return True
+    block = block.split("\n")
+    if len(block) > 1 and block[0].startswith('```') and block[-1].startswith('```'):
         return True
     return False
 

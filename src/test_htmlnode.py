@@ -1,7 +1,7 @@
 import unittest
 
 from blocktypes import BlockType, block_to_block_type
-from utils import markdown_to_blocks, markdown_to_html_node
+from utils import markdown_to_blocks, markdown_to_html_node 
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
@@ -231,6 +231,73 @@ This is the same paragraph on a new line
 
         not_ordered_list = "1. This is a list\n3. with items\n2. out of order"
         self.assertEqual(BlockType.PARAGRAPH, block_to_block_type(not_ordered_list))
+
+    def test_headers(self):
+        md = """
+# This is header 1
+
+## This is header 2
+
+### This is header 3
+
+#### This is header 4
+
+##### This is header 5
+
+###### This is header 6
+
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>This is header 1</h1><h2>This is header 2</h2><h3>This is header 3</h3><h4>This is header 4</h4><h5>This is header 5</h5><h6>This is header 6</h6></div>",
+        )
+
+    def test_blockquote(self):
+        md = """
+> This is a block quote
+
+>This is also a blockquote
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><blockquote>This is a block quote</blockquote><blockquote>This is also a blockquote</blockquote></div>",
+        )
+
+    def test_unordered_list(self):
+        md = """
+- This is a list
+- doesn't matter
+- where the order
+- but still
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>This is a list</li><li>doesn't matter</li><li>where the order</li><li>but still</li></ul></div>",
+        )
+
+    def test_unordered_list(self):
+        md = """
+1. This is a list
+2. where the order
+3. does matter
+4. actually
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li>This is a list</li><li>where the order</li><li>does matter</li><li>actually</li></ol></div>",
+        )
 
     def test_paragraphs(self):
         md = """
