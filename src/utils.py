@@ -1,5 +1,7 @@
 import re
+import os
 
+from shutil import copy, rmtree
 from typing import List, Tuple
 from textnode import TextType, TextNode, text_node_to_html_node
 from htmlnode import ParentNode, HTMLNode, LeafNode
@@ -180,3 +182,53 @@ def convert_ord_block_to_html(block):
         children = convert_text_to_children(text)
         html_nodes.append(ParentNode("li", children))
     return ParentNode("ol", html_nodes)
+
+def copy_dir_to_dest(from_dir, dest_dir):
+    if not os.path.exists(os.path.abspath(from_dir)) or not os.path.exists(os.path.abspath(dest_dir)):
+        raise ValueError(f"Either directory does not exist: {from_dir} or {dest_dir}")
+    print(f"Attempting to move files from {from_dir} to {dest_dir}...")
+    files = os.listdir(dest_dir)
+    if len(files) > 0:
+        print(f"Removing files and folders from {dest_dir} first...")
+        for file in files:
+            file_path = os.path.join(dest_dir, file)
+            if os.path.isdir(file_path):
+                print(f"dir in {dest_dir}: {file_path}")
+                remove_files_from_dir(file_path)
+                os.removedirs(file_path)
+                continue
+            print(f"file in {dest_dir}: {file_path}")
+            os.remove(file_path)
+    print(f"Destination directory {dest_dir} now empty...")
+    print(f"Copying Files from {from_dir}...")
+    copy_files = os.listdir(from_dir)
+    for file in copy_files:
+        file_path = os.path.join(from_dir, file)
+        copy_files_recursive(file_path, dest_dir)
+
+def copy_files_recursive(dir, dest):
+    print(f"dir {dir}")
+    if os.path.isdir(dir):
+        dir_name = dir.split("/")[1]
+        print(dir_name)
+        new_dest = os.path.join(dest, dir_name)
+        os.mkdir(new_dest)
+        # copy(dir, dest)
+        copy_files_recursive(dir_name, new_dest)
+        return
+    else:
+        copy(dir, dest)
+
+
+def remove_files_from_dir(dir):
+    files = os.listdir(dir)
+    print(f"remove files: {files}")
+    for file in files:
+        file_path = os.path.join(dir, file)
+        print(f"remove file_path: {file_path}")
+        if os.path.isdir(file_path):
+            remove_files_from_dir(file_path)
+            os.removedirs(file_path)
+            continue
+        os.remove(file_path)
+        
