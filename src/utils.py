@@ -184,8 +184,14 @@ def convert_ord_block_to_html(block):
     return ParentNode("ol", html_nodes)
 
 def copy_dir_to_dest(from_dir, dest_dir):
-    if not os.path.exists(os.path.abspath(from_dir)) or not os.path.exists(os.path.abspath(dest_dir)):
-        raise ValueError(f"Either directory does not exist: {from_dir} or {dest_dir}")
+    print(f"os.path.exists {from_dir}: {os.path.exists(from_dir)}")
+    print(f"os.path.exists {dest_dir}: {os.path.exists(dest_dir)}")
+    if not os.path.exists(from_dir):
+        raise ValueError(f"Source directory does not exist: {from_dir}")
+    if not os.path.exists(dest_dir):
+        print(f"The destination directory {dest_dir} does not exist...")
+        print(f"Creating {dest_dir} via mkdir")
+        os.mkdir(dest_dir)
     print(f"Attempting to move files from {from_dir} to {dest_dir}...")
     files = os.listdir(dest_dir)
     if len(files) > 0:
@@ -208,14 +214,16 @@ def copy_dir_to_dest(from_dir, dest_dir):
 
 def copy_files_recursive(dir, dest):
     print(f"dir {dir}")
+    files = os.listdir(dir)
     if os.path.isdir(dir):
         dir_name = dir.split("/")[1]
-        print(dir_name)
+        print(f"dir split: {dir_name}")
         new_dest = os.path.join(dest, dir_name)
+        print(f"new_dest: {new_dest}")
         os.mkdir(new_dest)
         # copy(dir, dest)
-        copy_files_recursive(dir_name, new_dest)
-        return
+        files = os.listdir(dir)
+        copy_files_recursive(files, new_dest)
     else:
         copy(dir, dest)
 
