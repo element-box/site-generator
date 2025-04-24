@@ -1,7 +1,7 @@
 import re
 import os
+import shutil
 
-from shutil import copy, rmtree
 from typing import List, Tuple
 from textnode import TextType, TextNode, text_node_to_html_node
 from htmlnode import ParentNode, HTMLNode, LeafNode
@@ -184,59 +184,35 @@ def convert_ord_block_to_html(block):
     return ParentNode("ol", html_nodes)
 
 def copy_dir_to_dest(from_dir, dest_dir):
-    print(f"os.path.exists {from_dir}: {os.path.exists(from_dir)}")
-    print(f"os.path.exists {dest_dir}: {os.path.exists(dest_dir)}")
     if not os.path.exists(from_dir):
         raise ValueError(f"Source directory does not exist: {from_dir}")
-    if not os.path.exists(dest_dir):
-        print(f"The destination directory {dest_dir} does not exist...")
-        print(f"Creating {dest_dir} via mkdir")
-        os.mkdir(dest_dir)
+
+    if os.path.exists(dest_dir):
+        print(f"Removing files from {dest_dir} folder...")
+        shutil.rmtree(dest_dir)
+
+    print(f"The destination directory {dest_dir} does not exist...")
+    print(f"Creating {dest_dir} via mkdir")
+    os.makedirs(dest_dir)
+    
     print(f"Attempting to move files from {from_dir} to {dest_dir}...")
-    files = os.listdir(dest_dir)
-    if len(files) > 0:
-        print(f"Removing files and folders from {dest_dir} first...")
-        for file in files:
-            file_path = os.path.join(dest_dir, file)
-            if os.path.isdir(file_path):
-                print(f"dir in {dest_dir}: {file_path}")
-                remove_files_from_dir(file_path)
-                os.removedirs(file_path)
-                continue
-            print(f"file in {dest_dir}: {file_path}")
-            os.remove(file_path)
-    print(f"Destination directory {dest_dir} now empty...")
     print(f"Copying Files from {from_dir}...")
     copy_files = os.listdir(from_dir)
     for file in copy_files:
         file_path = os.path.join(from_dir, file)
         copy_files_recursive(file_path, dest_dir)
 
-def copy_files_recursive(dir, dest):
-    print(f"dir {dir}")
-    files = os.listdir(dir)
-    if os.path.isdir(dir):
-        dir_name = dir.split("/")[1]
-        print(f"dir split: {dir_name}")
-        new_dest = os.path.join(dest, dir_name)
-        print(f"new_dest: {new_dest}")
-        os.mkdir(new_dest)
-        # copy(dir, dest)
-        files = os.listdir(dir)
-        copy_files_recursive(files, new_dest)
-    else:
-        copy(dir, dest)
+def copy_files_recursive(source, dest):
+    if os.path.isfile(source):
+        print(f"Copying file {source} to {dest}...")
+        shutil.copy(source, dest)
+        return
+    
+    dest_dir = os.path.join(dest, os.path.basename(source))
+    if not os.path.exists(dest_dir):
+        print(f"Creating directory: {dest_dir}...")
+        os.makedirs(dest_dir)
 
-
-def remove_files_from_dir(dir):
-    files = os.listdir(dir)
-    print(f"remove files: {files}")
-    for file in files:
-        file_path = os.path.join(dir, file)
-        print(f"remove file_path: {file_path}")
-        if os.path.isdir(file_path):
-            remove_files_from_dir(file_path)
-            os.removedirs(file_path)
-            continue
-        os.remove(file_path)
-        
+    for item in os.listdir(source):
+        source_item = os.path.join(source, item)
+        copy_files_recursive(source_item, dest_dir)
