@@ -28,11 +28,9 @@ def split_nodes_delimiter(old_nodes: List, delimiter: str, text_type: TextType) 
     return new_nodes
 
 def extract_markdown_images(text: str) -> List[Tuple]:
-    #return re.findall(r"!\[(.*?)\]\((.*?)\)", text)
     return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
 def extract_markdown_links(text: str) -> List[Tuple]:
-    #return re.findall(r"\[(.*?)\]\((.*?)\)", text)
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
 def split_nodes_image(old_nodes):
@@ -216,3 +214,22 @@ def copy_files_recursive(source, dest):
     for item in os.listdir(source):
         source_item = os.path.join(source, item)
         copy_files_recursive(source_item, dest_dir)
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if block.startswith("# "):
+            return block[2:]
+    raise Exception("No title header found in markdown file")
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    markdown_file = ""
+    if os.path.exists(from_path) and os.path.isdir(from_path):
+        files = os.listdir(from_path)
+        for file in files:
+            if os.path.isfile(file):
+                with open(file, 'r') as f:
+                    markdown_file = f.read()
+
+    print(f"markdown: {markdown_file}")

@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode, TextType
-from utils import copy_dir_to_dest
+from utils import copy_dir_to_dest, generate_page
 
 
 def main():
@@ -10,6 +10,7 @@ def main():
 
     copy_dir_to_dest('static', 'public')
 
+    generate_page('content', '.', 'public')
 
 
 if __name__ == "__main__":

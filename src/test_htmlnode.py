@@ -1,7 +1,7 @@
 import unittest
 
 from blocktypes import BlockType, block_to_block_type
-from utils import markdown_to_blocks, markdown_to_html_node 
+from utils import markdown_to_blocks, markdown_to_html_node, extract_title
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
@@ -330,6 +330,36 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+    def test_extract_title(self):
+        md = """
+# Title Header is Valid!
+"""
+        extracted_title = extract_title(md)
+        self.assertEqual(
+            extracted_title,
+            "Title Header is Valid!"
+        )
+
+        md = """
+## Header 2 with bad formatting, but still valid
+
+# Title Header is out of order, but ok!
+"""
+        extracted_title = extract_title(md)
+        self.assertEqual(
+            extracted_title,
+            "Title Header is out of order, but ok!"
+        )
+
+
+    def test_negative_extract_title(self):
+        with self.assertRaises(Exception, msg="No title header found in markdown file"):
+            extract_title("This is just a standard paragraph.")
+        
+        with self.assertRaises(Exception, msg="No title header found in markdown file"):
+            extract_title("## This is header 2 but not 1")
+
 
 if __name__ == "__main__":
     unittest.main()
