@@ -222,8 +222,8 @@ def extract_title(markdown):
             return block[2:]
     raise Exception("No title header found in markdown file")
 
-def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+def generate_page(from_path, template_path, dest_path, basepath):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}/template.html...")
     
     # Read Markdown
     if os.path.exists(from_path) and os.path.isdir(from_path):
@@ -244,12 +244,14 @@ def generate_page(from_path, template_path, dest_path):
     for rel_path, md_text in path_to_text.items():
         title = extract_title(md_text)
         html_nodes = markdown_to_html_node(md_text)
-        page_content = template_file.replace("{{ Title }}", title).replace("{{ Content }}", html_nodes.to_html())
+        page_content = template_file.replace("{{ Title }}", title). \
+            replace("{{ Content }}", html_nodes.to_html()). \
+            replace('href="/', f'href="{basepath}'). \
+            replace('src="/', f'src="{basepath}')
         if rel_path.endswith('.md'):
             rel_path = rel_path.replace('.md', '.html')
         output_file = os.path.join(dest_path, rel_path)
-        if not os.path.exists(output_file):
-            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w') as f:
             f.write(page_content)
     
