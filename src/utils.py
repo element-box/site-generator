@@ -224,12 +224,48 @@ def extract_title(markdown):
 
 def generate_page(from_path, template_path, dest_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
-    markdown_file = ""
+    
+    # Read Markdown
     if os.path.exists(from_path) and os.path.isdir(from_path):
-        files = os.listdir(from_path)
-        for file in files:
-            if os.path.isfile(file):
-                with open(file, 'r') as f:
-                    markdown_file = f.read()
+        path_to_text = extract_text_from_file(from_path)
+    else:
+        raise Exception(f"Directory {from_path} to copy doesn't exist")
 
-    print(f"markdown: {markdown_file}")
+    # Read template file
+    template_file = ""
+    if os.path.exists(template_path) and os.path.isdir(template_path):
+        file_path = os.path.join(template_path, "template.html")
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as f:
+                template_file = f.read()
+    else:
+        raise Exception(f"Template directory {template_path} doesn't exist")
+    
+    for rel_path, md_text in path_to_text.items():
+        title = extract_title(md_text)
+        html_nodes = markdown_to_html_node(md_text)
+        page_content = template_file.replace("{{ Title }}", title).replace("{{ Content }}", html_nodes.to_html())
+        if rel_path.endswith('.md'):
+            rel_path = rel_path.replace('.md', '.html')
+        output_file = os.path.join(dest_path, rel_path)
+        if not os.path.exists(output_file):
+            os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        with open(output_file, 'w') as f:
+            f.write(page_content)
+    
+def extract_text_from_file(dir_path, root_dir=None):
+    if root_dir is None:
+        root_dir = dir_path
+    relpath_to_content = {}
+    for item in os.listdir(dir_path):
+        file_path = os.path.join(dir_path, item)
+        if os.path.isfile(file_path) and file_path.endswith('.md'):
+            with open(file_path, 'r') as f:
+                text = f.read()
+            rel_path = os.path.relpath(file_path, root_dir)
+            relpath_to_content[rel_path] = text
+        
+        if os.path.isdir(file_path):
+            relpath_to_content.update(extract_text_from_file(file_path, root_dir))
+    
+    return relpath_to_content
